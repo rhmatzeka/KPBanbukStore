@@ -148,27 +148,28 @@ function DashboardEnhanced({ user, onNavigate }) {
       </div>
 
       <div className="dashboard-section-grid">
-        <div className="dashboard-panel">
+        <div className="dashboard-panel dashboard-panel-warning">
           <div className="dashboard-panel-header">
             <div>
               <h2>Alert Stok Menipis</h2>
               <p>Prioritas produk yang perlu segera direstock.</p>
             </div>
-            <button type="button" className="btn btn-secondary" onClick={() => onNavigate?.('products')}>
+            <button type="button" className="btn btn-alert-action" onClick={() => onNavigate?.('products')}>
               Buka Produk
             </button>
           </div>
           {lowStockProducts.length ? (
             <div className="dashboard-list">
               {lowStockProducts.map((product) => (
-                <div key={product.id} className="dashboard-list-item">
-                  <div>
+                <div key={product.id} className="dashboard-list-item dashboard-list-item-warning">
+                  <div className="dashboard-list-main">
+                    <span className="alert-chip">Perlu Restock</span>
                     <strong>{product.name}</strong>
                     <span>{product.category?.name || 'Tanpa kategori'}</span>
                   </div>
                   <div className="dashboard-list-meta">
-                    <strong>{formatNumber(product.stock)} {product.unit}</strong>
-                    <span>Min. {formatNumber(product.min_stock)}</span>
+                    <strong className="stock-warning-value">{formatNumber(product.stock)} {product.unit}</strong>
+                    <span className="stock-warning-min">Min. {formatNumber(product.min_stock)}</span>
                   </div>
                 </div>
               ))}
