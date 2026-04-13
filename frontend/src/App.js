@@ -39,6 +39,8 @@ function App() {
     return <Login onLogin={handleLogin} />;
   }
 
+  const canManageUsers = ['owner', 'admin'].includes(user.role?.name);
+
   return (
     <div className="app">
       {/* Mobile Header */}
@@ -86,7 +88,7 @@ function App() {
             >
               Transaksi
             </div>
-            {user.role?.name === 'admin' && (
+            {canManageUsers && (
               <div 
                 className={`menu-item ${currentPage === 'users' ? 'active' : ''}`}
                 onClick={() => handlePageChange('users')}

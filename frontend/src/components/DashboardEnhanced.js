@@ -69,7 +69,7 @@ function DashboardEnhanced({ user, onNavigate }) {
     { label: 'Kelola Kategori', helper: 'Rapikan struktur inventaris', page: 'categories' },
   ];
 
-  if (user.role?.name === 'admin') {
+  if (['owner', 'admin'].includes(user.role?.name)) {
     quickActions.push({ label: 'Kelola User', helper: 'Atur akun operasional', page: 'users' });
   }
 
