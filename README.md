@@ -110,11 +110,11 @@ Frontend aktif di:
 
 ## Konfigurasi Database Backend
 
-File konfigurasi:
+File contoh konfigurasi:
 
-- [backend/.env](</C:/Rahmat Folder/UNPAM/TUGAS/KP/ProjectApp/backend/.env:1>)
+- `backend/.env.example`
 
-Konfigurasi yang dipakai:
+Salin menjadi `.env`, lalu gunakan konfigurasi berikut:
 
 ```env
 DB_CONNECTION=mysql
@@ -176,6 +176,7 @@ ProjectApp/
 
 ## Catatan
 
+- File `backend/.env` memang tidak di-push ke GitHub karena berisi konfigurasi lokal. Untuk setup di komputer lain, gunakan `backend/.env.example` lalu rename/copy menjadi `backend/.env`.
 - Frontend sekarang memakai base API dinamis dari host browser, jadi lebih aman saat dibuka dari `localhost` maupun IP jaringan lokal.
 - UI sudah dirapikan agar lebih nyaman di berbagai ukuran layar.
 - Jika tampilan browser belum berubah setelah update, lakukan hard refresh dengan `Ctrl + F5`.
