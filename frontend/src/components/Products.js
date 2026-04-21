@@ -148,7 +148,7 @@ function Products({ user }) {
                 <td data-label="Nama">{product.name}</td>
                 <td data-label="Kategori">{product.category?.name}</td>
                 <td data-label="Stok">
-                  <span className={`badge ${product.stock <= product.min_stock ? 'badge-danger' : 'badge-success'}`}>
+                  <span className={`badge ${product.stock <= product.min_stock ? 'badge-danger' : 'badge-stock-ok'}`}>
                     {product.stock}
                   </span>
                 </td>
