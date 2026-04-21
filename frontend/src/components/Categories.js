@@ -3,7 +3,7 @@ import api from '../api';
 import Loading from './Loading';
 import ConfirmDialog from './ConfirmDialog';
 
-function Categories() {
+function Categories({ user }) {
   const [categories, setCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
@@ -87,6 +87,8 @@ function Categories() {
     return <Loading />;
   }
 
+  const canDelete = user?.role?.name === 'owner';
+
   return (
     <div>
       <div className="page-header">
@@ -122,9 +124,11 @@ function Categories() {
                   <button type="button" className="btn btn-sm btn-secondary" onClick={() => openModal(category)}>
                     Edit
                   </button>
-                  <button type="button" className="btn btn-sm btn-danger" onClick={() => openDeleteConfirm(category)}>
-                    Hapus
-                  </button>
+                  {canDelete && (
+                    <button type="button" className="btn btn-sm btn-danger" onClick={() => openDeleteConfirm(category)}>
+                      Hapus
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

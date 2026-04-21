@@ -5,7 +5,7 @@ import ConfirmDialog from './ConfirmDialog';
 
 /* eslint-disable react-hooks/exhaustive-deps */
 
-function Users() {
+function Users({ user }) {
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -146,9 +146,11 @@ function Users() {
                   <button type="button" className="btn btn-sm btn-secondary" onClick={() => openModal(u)}>
                     Edit
                   </button>
-                  <button type="button" className="btn btn-sm btn-danger" onClick={() => openDeleteConfirm(u)}>
-                    Hapus
-                  </button>
+                  {user?.id !== u.id && (
+                    <button type="button" className="btn btn-sm btn-danger" onClick={() => openDeleteConfirm(u)}>
+                      Hapus
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

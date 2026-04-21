@@ -4,12 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+    public function login(Request $request, AuditLogger $auditLogger)
     {
         $request->validate([
             'email' => 'required|email',
@@ -19,6 +20,13 @@ class AuthController extends Controller
         $user = User::with('role')->where('email', trim($request->email))->first();
 
         if (!$user) {
+            $auditLogger->log(
+                $request,
+                'failed_login',
+                'auth',
+                'Percobaan login gagal untuk email ' . trim($request->email)
+            );
+
             return response()->json(['message' => 'User tidak ditemukan'], 401);
         }
 
@@ -30,6 +38,16 @@ class AuthController extends Controller
             $user->password = Hash::make($inputPassword);
             $user->save();
 
+            $auditLogger->log(
+                $request,
+                'login',
+                'auth',
+                'Login berhasil untuk user ' . $user->name,
+                null,
+                ['email' => $user->email],
+                $user
+            );
+
             return response()->json([
                 'user' => $user,
                 'token' => 'dummy-token-' . $user->id
@@ -40,8 +58,28 @@ class AuthController extends Controller
         $isBcryptHash = ($passwordInfo['algoName'] ?? 'unknown') === 'bcrypt';
 
         if (!$isBcryptHash || !Hash::check($inputPassword, $storedPassword)) {
+            $auditLogger->log(
+                $request,
+                'failed_login',
+                'auth',
+                'Percobaan login gagal untuk user ' . $user->name,
+                null,
+                ['email' => $user->email],
+                $user
+            );
+
             return response()->json(['message' => 'Password salah'], 401);
         }
+
+        $auditLogger->log(
+            $request,
+            'login',
+            'auth',
+            'Login berhasil untuk user ' . $user->name,
+            null,
+            ['email' => $user->email],
+            $user
+        );
 
         return response()->json([
             'user' => $user,

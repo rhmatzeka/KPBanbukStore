@@ -87,7 +87,7 @@ function LoginAnimated({ onLogin }) {
           opacity: 0,
           duration: 0.4,
           ease: 'power2.in',
-          onComplete: () => onLogin(response.data.user)
+          onComplete: () => onLogin(response.data.user, response.data.token)
         });
       } else {
         setError('Login gagal. Silakan coba lagi.');

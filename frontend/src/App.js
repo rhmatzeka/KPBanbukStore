@@ -6,6 +6,9 @@ import Products from './components/Products';
 import Categories from './components/Categories';
 import Transactions from './components/Transactions';
 import Users from './components/Users';
+import StockOpname from './components/StockOpname';
+import AuditLogs from './components/AuditLogs';
+import Reports from './components/Reports';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -15,18 +18,25 @@ function App() {
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      const parsedUser = JSON.parse(savedUser);
+      setUser(parsedUser);
+
+      if (!localStorage.getItem('token') && parsedUser.id) {
+        localStorage.setItem('token', `dummy-token-${parsedUser.id}`);
+      }
     }
   }, []);
 
-  const handleLogin = (userData) => {
+  const handleLogin = (userData, token) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('token', token || `dummy-token-${userData.id}`);
   };
 
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     setCurrentPage('dashboard');
   };
 
@@ -39,7 +49,10 @@ function App() {
     return <Login onLogin={handleLogin} />;
   }
 
-  const canManageUsers = ['owner', 'admin'].includes(user.role?.name);
+  const canManageUsers = user.role?.name === 'owner';
+  const canUseStockOpname = ['owner', 'admin'].includes(user.role?.name);
+  const canViewReports = ['owner', 'admin'].includes(user.role?.name);
+  const canViewAuditLogs = user.role?.name === 'owner';
 
   return (
     <div className="app">
@@ -88,12 +101,36 @@ function App() {
             >
               Transaksi
             </div>
+            {canUseStockOpname && (
+              <div 
+                className={`menu-item ${currentPage === 'stock-opname' ? 'active' : ''}`}
+                onClick={() => handlePageChange('stock-opname')}
+              >
+                Stock Opname
+              </div>
+            )}
+            {canViewReports && (
+              <div 
+                className={`menu-item ${currentPage === 'reports' ? 'active' : ''}`}
+                onClick={() => handlePageChange('reports')}
+              >
+                Laporan
+              </div>
+            )}
             {canManageUsers && (
               <div 
                 className={`menu-item ${currentPage === 'users' ? 'active' : ''}`}
                 onClick={() => handlePageChange('users')}
               >
                 Kelola User
+              </div>
+            )}
+            {canViewAuditLogs && (
+              <div 
+                className={`menu-item ${currentPage === 'audit-logs' ? 'active' : ''}`}
+                onClick={() => handlePageChange('audit-logs')}
+              >
+                Audit Log
               </div>
             )}
             <div className="menu-item menu-item-logout" onClick={handleLogout}>
@@ -106,7 +143,10 @@ function App() {
           {currentPage === 'products' && <Products user={user} />}
           {currentPage === 'categories' && <Categories user={user} />}
           {currentPage === 'transactions' && <Transactions user={user} />}
-          {currentPage === 'users' && <Users user={user} />}
+          {currentPage === 'stock-opname' && canUseStockOpname && <StockOpname user={user} />}
+          {currentPage === 'reports' && canViewReports && <Reports />}
+          {currentPage === 'users' && canManageUsers && <Users user={user} />}
+          {currentPage === 'audit-logs' && canViewAuditLogs && <AuditLogs />}
         </div>
       </div>
     </div>

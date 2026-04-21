@@ -70,7 +70,15 @@ function DashboardEnhanced({ user, onNavigate }) {
   ];
 
   if (['owner', 'admin'].includes(user.role?.name)) {
-    quickActions.push({ label: 'Kelola User', helper: 'Atur akun operasional', page: 'users' });
+    quickActions.push({ label: 'Stock Opname', helper: 'Sesuaikan stok fisik gudang', page: 'stock-opname' });
+    quickActions.push({ label: 'Laporan', helper: 'Cetak PDF atau export CSV', page: 'reports' });
+  }
+
+  if (['owner', 'admin'].includes(user.role?.name)) {
+    if (user.role?.name === 'owner') {
+      quickActions.push({ label: 'Kelola User', helper: 'Atur akun operasional', page: 'users' });
+      quickActions.push({ label: 'Audit Log', helper: 'Pantau perubahan data sistem', page: 'audit-logs' });
+    }
   }
 
   return (

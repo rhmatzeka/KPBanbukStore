@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\StockOpnameController;
+use App\Http\Controllers\Api\AuditLogController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -20,6 +22,9 @@ Route::middleware('api')->group(function () {
     
     Route::apiResource('products', ProductController::class);
     Route::apiResource('categories', CategoryController::class);
-    Route::apiResource('transactions', TransactionController::class);
+    Route::apiResource('transactions', TransactionController::class)->except(['update']);
     Route::apiResource('users', UserController::class);
+    Route::get('/stock-opnames', [StockOpnameController::class, 'index']);
+    Route::post('/stock-opnames', [StockOpnameController::class, 'store']);
+    Route::get('/audit-logs', [AuditLogController::class, 'index']);
 });

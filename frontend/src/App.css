@@ -2810,6 +2810,139 @@ body {
   color: #1a1a1a;
 }
 
+.stock-preview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 14px;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.stock-preview span {
+  display: block;
+  margin-bottom: 6px;
+  color: #666;
+  font-size: 12px;
+}
+
+.stock-preview strong {
+  display: block;
+  color: #1a1a1a;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.text-danger {
+  color: #dc2626 !important;
+}
+
+.text-success {
+  color: #16a34a !important;
+}
+
+.audit-header {
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.table-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.table-filters input,
+.table-filters select {
+  width: auto;
+  min-width: 150px;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #f9f9f9;
+  color: #1a1a1a;
+  font-size: 13px;
+}
+
+.table-filters .btn {
+  padding: 10px 14px;
+}
+
+.audit-details summary {
+  cursor: pointer;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.audit-details pre {
+  max-width: 360px;
+  max-height: 180px;
+  margin-top: 10px;
+  overflow: auto;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f5f5f5;
+  color: #333;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.report-filter-header {
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.report-actions .btn {
+  width: auto;
+}
+
+.report-filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.report-filters .form-group {
+  margin-bottom: 0;
+}
+
+.report-print-header {
+  margin-bottom: 20px;
+}
+
+.report-print-header h1 {
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1a1a1a;
+}
+
+.report-print-header p {
+  color: #666;
+  font-size: 14px;
+}
+
+.report-summary-grid {
+  margin-bottom: 24px;
+}
+
+.report-empty-state {
+  margin: 16px 24px 24px;
+}
+
 @media (max-width: 900px) {
   .dashboard-section-grid {
     grid-template-columns: 1fr;
@@ -2849,5 +2982,110 @@ body {
 
   .dashboard-list-item-warning {
     gap: 10px;
+  }
+
+  .stock-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .audit-header,
+  .table-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .table-filters input,
+  .table-filters select,
+  .table-filters .btn {
+    width: 100%;
+  }
+
+  .report-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .report-filters {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+
+  .report-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .report-actions .btn {
+    width: 100%;
+  }
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+
+  .sidebar,
+  .mobile-header,
+  .sidebar-overlay,
+  .no-print {
+    display: none !important;
+  }
+
+  .dashboard {
+    display: block !important;
+    min-height: auto !important;
+  }
+
+  .main-content {
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  .report-page,
+  .print-area {
+    background: #ffffff !important;
+  }
+
+  .report-print-header {
+    display: block !important;
+  }
+
+  .stat-card,
+  .table-container {
+    border: 1px solid #d7d7d7 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .stat-card {
+    padding: 12px !important;
+  }
+
+  .stat-card .value {
+    font-size: 22px !important;
+  }
+
+  .table-scroll {
+    overflow: visible !important;
+  }
+
+  .table-scroll table {
+    min-width: 0 !important;
+  }
+
+  th,
+  td {
+    padding: 8px 10px !important;
+    font-size: 11px !important;
   }
 }

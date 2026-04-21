@@ -111,6 +111,47 @@ CREATE TABLE `transactions` (
     FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE `stock_opnames` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `opname_code` varchar(255) NOT NULL,
+  `product_id` bigint unsigned NOT NULL,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `system_stock` int NOT NULL,
+  `physical_stock` int NOT NULL,
+  `difference` int NOT NULL,
+  `reason` text NOT NULL,
+  `opname_date` date NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `stock_opnames_opname_code_unique` (`opname_code`),
+  KEY `stock_opnames_product_id_foreign` (`product_id`),
+  KEY `stock_opnames_user_id_foreign` (`user_id`),
+  CONSTRAINT `stock_opnames_product_id_foreign`
+    FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `stock_opnames_user_id_foreign`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `audit_logs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `action` varchar(50) NOT NULL,
+  `module` varchar(80) NOT NULL,
+  `description` text NOT NULL,
+  `old_values` json DEFAULT NULL,
+  `new_values` json DEFAULT NULL,
+  `ip_address` varchar(255) DEFAULT NULL,
+  `user_agent` varchar(500) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `audit_logs_user_id_foreign` (`user_id`),
+  KEY `audit_logs_module_action_index` (`module`, `action`),
+  CONSTRAINT `audit_logs_user_id_foreign`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ============================================================
 -- Laravel support tables
 -- ============================================================
@@ -237,7 +278,9 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (5, '2026_04_08_023634_add_role_to_users_table', 1),
 (6, '2026_04_08_023634_create_categories_table', 1),
 (7, '2026_04_08_023635_create_products_table', 1),
-(8, '2026_04_08_023635_create_transactions_table', 1);
+(8, '2026_04_08_023635_create_transactions_table', 1),
+(9, '2026_04_21_000001_create_stock_opnames_table', 1),
+(10, '2026_04_21_000002_create_audit_logs_table', 1);
 
 -- ============================================================
 -- Selesai

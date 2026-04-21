@@ -19,7 +19,7 @@ function Login({ onLogin }) {
       });
 
       if (response.data && response.data.user) {
-        onLogin(response.data.user);
+        onLogin(response.data.user, response.data.token);
       } else {
         setError('Login gagal. Silakan coba lagi.');
       }

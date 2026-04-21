@@ -20,6 +20,10 @@ Aplikasi inventaris gudang berbasis Laravel dan React untuk mengelola produk, ka
 - Transaksi barang keluar
 - Update stok otomatis dari transaksi
 - Monitoring stok minimum
+- Stock opname / penyesuaian stok fisik
+- Laporan transaksi dengan cetak PDF dan export CSV
+- Audit log aktivitas pengguna
+- Hak akses detail berdasarkan role
 - Kelola user
 
 ## Role Pengguna
@@ -30,7 +34,11 @@ Aplikasi inventaris gudang berbasis Laravel dan React untuk mengelola produk, ka
 - Akses kategori
 - Akses produk
 - Akses transaksi
+- Akses stock opname
+- Akses laporan
+- Akses audit log aktivitas
 - Akses kelola user
+- Dapat menghapus data master dan transaksi
 
 ### Admin
 
@@ -38,7 +46,10 @@ Aplikasi inventaris gudang berbasis Laravel dan React untuk mengelola produk, ka
 - Akses kategori
 - Akses produk
 - Akses transaksi
-- Akses kelola user
+- Akses stock opname
+- Akses laporan
+- Tidak dapat menghapus data master
+- Tidak dapat mengakses kelola user dan audit log
 
 ## Akun Login Default
 
@@ -137,6 +148,11 @@ DB_PASSWORD=
 - `GET /api/dashboard`
 - `GET /api/dashboard/chart`
 
+### Stock Opname dan Audit
+
+- `GET|POST /api/stock-opnames`
+- `GET /api/audit-logs`
+
 ### Master Data
 
 - `GET|POST|PUT|DELETE /api/categories`
@@ -156,6 +172,10 @@ DB_PASSWORD=
 - Transaksi `out` mengurangi stok
 - Transaksi keluar ditolak jika stok tidak cukup
 - Produk memakai `min_stock` untuk mendeteksi stok menipis
+- Stock opname menyimpan stok sistem, stok fisik, selisih, alasan, tanggal, dan petugas
+- Stock opname otomatis mengubah stok produk menjadi stok fisik yang diinput
+- Aktivitas login, tambah, ubah, hapus, transaksi, dan stock opname dicatat ke audit log
+- Owner memiliki akses penuh, sedangkan Admin fokus pada operasional stok tanpa akses hapus sensitif
 
 ## Struktur Folder Singkat
 

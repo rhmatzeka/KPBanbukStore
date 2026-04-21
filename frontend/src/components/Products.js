@@ -5,7 +5,7 @@ import ConfirmDialog from './ConfirmDialog';
 
 /* eslint-disable react-hooks/exhaustive-deps */
 
-function Products() {
+function Products({ user }) {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -110,6 +110,8 @@ function Products() {
     return <Loading />;
   }
 
+  const canDelete = user?.role?.name === 'owner';
+
   return (
     <div>
       <div className="page-header">
@@ -157,9 +159,11 @@ function Products() {
                   <button type="button" className="btn btn-sm btn-secondary" onClick={() => openModal(product)}>
                     Edit
                   </button>
-                  <button type="button" className="btn btn-sm btn-danger" onClick={() => openDeleteConfirm(product)}>
-                    Hapus
-                  </button>
+                  {canDelete && (
+                    <button type="button" className="btn btn-sm btn-danger" onClick={() => openDeleteConfirm(product)}>
+                      Hapus
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
