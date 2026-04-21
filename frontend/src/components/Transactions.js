@@ -4,10 +4,11 @@ import Loading from './Loading';
 
 /* eslint-disable react-hooks/exhaustive-deps */
 
-function Transactions({ user }) {
+function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     product_id: '',
@@ -41,10 +42,11 @@ function Transactions({ user }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/transactions', {
-        ...formData,
-        user_id: user.id
-      });
+      if (editingTransaction) {
+        await api.put(`/transactions/${editingTransaction.id}`, formData);
+      } else {
+        await api.post('/transactions', formData);
+      }
       fetchTransactions();
       fetchProducts();
       closeModal();
@@ -53,19 +55,32 @@ function Transactions({ user }) {
     }
   };
 
-  const openModal = () => {
-    setFormData({
-      product_id: '',
-      type: 'in',
-      quantity: 1,
-      notes: '',
-      transaction_date: new Date().toISOString().split('T')[0]
-    });
+  const openModal = (transaction = null) => {
+    if (transaction) {
+      setEditingTransaction(transaction);
+      setFormData({
+        product_id: transaction.product_id,
+        type: transaction.type,
+        quantity: transaction.quantity,
+        notes: transaction.notes || '',
+        transaction_date: String(transaction.transaction_date).split('T')[0]
+      });
+    } else {
+      setEditingTransaction(null);
+      setFormData({
+        product_id: '',
+        type: 'in',
+        quantity: 1,
+        notes: '',
+        transaction_date: new Date().toISOString().split('T')[0]
+      });
+    }
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
+    setEditingTransaction(null);
   };
 
   if (loading) {
@@ -98,6 +113,7 @@ function Transactions({ user }) {
               <th>User</th>
               <th>Catatan</th>
               <th>Tanggal</th>
+              <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -114,6 +130,11 @@ function Transactions({ user }) {
                 <td data-label="User">{trx.user?.name}</td>
                 <td data-label="Catatan">{trx.notes || '-'}</td>
                 <td data-label="Tanggal">{new Date(trx.transaction_date).toLocaleDateString('id-ID')}</td>
+                <td data-label="Aksi" className="action-cell">
+                  <button type="button" className="btn btn-sm btn-secondary" onClick={() => openModal(trx)}>
+                    Edit
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -124,7 +145,7 @@ function Transactions({ user }) {
       {showModal && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Tambah Transaksi</h2>
+            <h2>{editingTransaction ? 'Edit Transaksi' : 'Tambah Transaksi'}</h2>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Produk</label>
@@ -185,7 +206,7 @@ function Transactions({ user }) {
                   Batal
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  Simpan
+                  {editingTransaction ? 'Simpan Perubahan' : 'Simpan'}
                 </button>
               </div>
             </form>

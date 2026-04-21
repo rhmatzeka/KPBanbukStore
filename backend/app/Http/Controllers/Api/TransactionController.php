@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Services\AuditLogger;
 use App\Services\LowStockNotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class TransactionController extends Controller
@@ -95,6 +96,120 @@ class TransactionController extends Controller
         }
 
         $transaction = Transaction::with(['product', 'user'])->findOrFail($id);
+        return response()->json($transaction);
+    }
+
+    public function update(
+        Request $request,
+        $id,
+        LowStockNotificationService $lowStockNotificationService,
+        AuditLogger $auditLogger
+    ) {
+        if ($response = $this->requireOwnerOrAdmin($request)) {
+            return $response;
+        }
+
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'type' => 'required|in:in,out',
+            'quantity' => 'required|integer|min:1',
+            'notes' => 'nullable',
+            'transaction_date' => 'required|date'
+        ]);
+
+        $actor = $this->currentUser($request);
+
+        $transaction = DB::transaction(function () use (
+            $id,
+            $validated,
+            $request,
+            $actor,
+            $auditLogger,
+            $lowStockNotificationService
+        ) {
+            $transaction = Transaction::with(['product', 'user'])->lockForUpdate()->findOrFail($id);
+            $oldValues = $transaction->toArray();
+
+            $oldProductId = (int) $transaction->product_id;
+            $newProductId = (int) $validated['product_id'];
+            $productIds = collect([$oldProductId, $newProductId])->unique()->values();
+            $products = Product::whereIn('id', $productIds)->lockForUpdate()->get()->keyBy('id');
+
+            $oldProduct = $products[$oldProductId];
+            $newProduct = $products[$newProductId];
+
+            $stockSnapshots = [
+                $oldProductId => (int) $oldProduct->stock,
+            ];
+
+            if ($newProductId !== $oldProductId) {
+                $stockSnapshots[$newProductId] = (int) $newProduct->stock;
+            }
+
+            $oldImpact = $transaction->type === 'in'
+                ? (int) $transaction->quantity
+                : -1 * (int) $transaction->quantity;
+            $newImpact = $validated['type'] === 'in'
+                ? (int) $validated['quantity']
+                : -1 * (int) $validated['quantity'];
+
+            if ($oldProductId === $newProductId) {
+                $newStock = (int) $oldProduct->stock - $oldImpact + $newImpact;
+
+                if ($newStock < 0) {
+                    return response()->json(['message' => 'Stok tidak cukup untuk perubahan transaksi ini'], 400);
+                }
+
+                $oldProduct->stock = $newStock;
+                $oldProduct->save();
+            } else {
+                $oldProductStock = (int) $oldProduct->stock - $oldImpact;
+                $newProductStock = (int) $newProduct->stock + $newImpact;
+
+                if ($oldProductStock < 0 || $newProductStock < 0) {
+                    return response()->json(['message' => 'Stok tidak cukup untuk perubahan transaksi ini'], 400);
+                }
+
+                $oldProduct->stock = $oldProductStock;
+                $oldProduct->save();
+
+                $newProduct->stock = $newProductStock;
+                $newProduct->save();
+            }
+
+            $transaction->update($validated);
+            $transaction->load(['product', 'user']);
+
+            foreach ($products as $product) {
+                $lowStockNotificationService->notifyIfThresholdReached(
+                    $product->fresh('category'),
+                    $stockSnapshots[$product->id]
+                );
+            }
+
+            $auditLogger->log(
+                $request,
+                'update',
+                'transactions',
+                'Mengubah transaksi ' . $transaction->transaction_code,
+                $oldValues,
+                [
+                    'transaction' => $transaction->toArray(),
+                    'stock_before' => $stockSnapshots,
+                    'stock_after' => $products->mapWithKeys(fn ($product) => [
+                        $product->id => (int) $product->fresh()->stock,
+                    ])->toArray(),
+                ],
+                $actor
+            );
+
+            return $transaction;
+        });
+
+        if ($transaction instanceof \Illuminate\Http\JsonResponse) {
+            return $transaction;
+        }
+
         return response()->json($transaction);
     }
 
