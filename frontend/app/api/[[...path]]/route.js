@@ -14,6 +14,7 @@ function json(data, status = 200) {
 function serialize(value) {
   return JSON.parse(
     JSON.stringify(value, (_key, item) => {
+      if (_key === 'password' || _key === 'remember_token') return undefined;
       if (typeof item === 'bigint') return Number(item);
       if (item && typeof item === 'object' && typeof item.toNumber === 'function') {
         return item.toNumber();
@@ -58,18 +59,22 @@ async function requireRole(request, roles) {
 }
 
 async function audit(request, action, module, description, old_values = null, new_values = null, user = null) {
-  await prisma.auditLog.create({
-    data: {
-      user_id: user?.id || null,
-      action,
-      module,
-      description,
-      old_values: old_values ? serialize(old_values) : null,
-      new_values: new_values ? serialize(new_values) : null,
-      ip_address: request.headers.get('x-forwarded-for')?.split(',')[0] || null,
-      user_agent: request.headers.get('user-agent') || null,
-    },
-  });
+  try {
+    await prisma.auditLog.create({
+      data: {
+        user_id: user?.id || null,
+        action,
+        module,
+        description,
+        old_values: old_values ? serialize(old_values) : null,
+        new_values: new_values ? serialize(new_values) : null,
+        ip_address: request.headers.get('x-forwarded-for')?.split(',')[0] || null,
+        user_agent: request.headers.get('user-agent') || null,
+      },
+    });
+  } catch (error) {
+    console.error('Audit log failed:', error);
+  }
 }
 
 function randomCode(prefix) {
@@ -108,35 +113,65 @@ function userData(payload, includePassword = false) {
   return data;
 }
 
-async function handleLogin(request) {
-  const payload = await body(request);
-  const email = String(payload.email || '').trim();
-  const password = String(payload.password || '');
-  const user = await prisma.user.findUnique({ where: { email }, include: includeUser });
+async function handleLogin(request, payload) {
+  try {
+    const email = String(payload.email || '').trim();
+    const password = String(payload.password || '');
+    const user = await prisma.user.findUnique({ where: { email }, include: includeUser });
 
-  if (!user) {
-    await audit(request, 'failed_login', 'auth', `Percobaan login gagal untuk email ${email}`);
-    return json({ message: 'User tidak ditemukan' }, 401);
+    if (!user) {
+      await audit(request, 'failed_login', 'auth', `Percobaan login gagal untuk email ${email}`);
+      return json({ message: 'User tidak ditemukan. Pastikan database sudah di-seed.' }, 401);
+    }
+
+    const normalizedHash = user.password.replace(/^\$2y\$/, '$2a$');
+    const plainMatch = user.password === password;
+    const hashMatch = await bcrypt.compare(password, normalizedHash);
+
+    if (!plainMatch && !hashMatch) {
+      await audit(request, 'failed_login', 'auth', `Percobaan login gagal untuk user ${user.name}`, null, { email }, user);
+      return json({ message: 'Password salah' }, 401);
+    }
+
+    if (plainMatch) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { password: await bcrypt.hash(password, 12) },
+      });
+    }
+
+    await audit(request, 'login', 'auth', `Login berhasil untuk user ${user.name}`, null, { email }, user);
+    return json({ user, token: `dummy-token-${user.id}` });
+  } catch (error) {
+    console.error('Login failed:', error);
+    return json(
+      {
+        message: 'Login gagal karena koneksi database bermasalah. Cek environment variable DATABASE_URL di Vercel.',
+      },
+      500
+    );
   }
+}
 
-  const normalizedHash = user.password.replace(/^\$2y\$/, '$2a$');
-  const plainMatch = user.password === password;
-  const hashMatch = await bcrypt.compare(password, normalizedHash);
-
-  if (!plainMatch && !hashMatch) {
-    await audit(request, 'failed_login', 'auth', `Percobaan login gagal untuk user ${user.name}`, null, { email }, user);
-    return json({ message: 'Password salah' }, 401);
-  }
-
-  if (plainMatch) {
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { password: await bcrypt.hash(password, 12) },
+async function health() {
+  try {
+    const users = await prisma.user.count();
+    return json({
+      ok: true,
+      database: 'connected',
+      users,
     });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    return json(
+      {
+        ok: false,
+        database: 'error',
+        message: 'Database belum terkoneksi. Cek DATABASE_URL di Vercel dan redeploy.',
+      },
+      500
+    );
   }
-
-  await audit(request, 'login', 'auth', `Login berhasil untuk user ${user.name}`, null, { email }, user);
-  return json({ user, token: `dummy-token-${user.id}` });
 }
 
 async function dashboard() {
@@ -244,6 +279,7 @@ export async function GET(request, context) {
   const path = await pathOf(context.params);
   const [resource, id] = path;
 
+  if (resource === 'health') return health();
   if (resource === 'me') return json(await currentUser(request));
   if (resource === 'roles') return json(await prisma.role.findMany({ orderBy: { id: 'asc' } }));
   if (resource === 'dashboard' && !id) return dashboard();
@@ -320,7 +356,7 @@ export async function POST(request, context) {
   const [resource] = path;
   const payload = await body(request);
 
-  if (resource === 'login') return handleLogin(request);
+  if (resource === 'login') return handleLogin(request, payload);
 
   if (resource === 'products') {
     const access = await requireRole(request, ['owner', 'admin']);
