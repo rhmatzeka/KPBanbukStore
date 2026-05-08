@@ -1,10 +1,14 @@
 {
   "private": true,
+  "dependencies": {
+    "next": "^16.0.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
   "scripts": {
     "dev": "npm --prefix frontend run dev",
     "build": "npm --prefix frontend run build",
     "start": "npm --prefix frontend run start",
-    "postinstall": "npm --prefix frontend run postinstall",
     "db:push": "npm --prefix frontend run db:push",
     "db:seed": "npm --prefix frontend run db:seed"
   }
