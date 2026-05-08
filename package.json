@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix frontend run start",
+    "postinstall": "npm --prefix frontend run postinstall",
+    "db:push": "npm --prefix frontend run db:push",
+    "db:seed": "npm --prefix frontend run db:seed"
+  }
+}
