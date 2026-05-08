@@ -95,6 +95,7 @@ Di folder `frontend`, salin `.env.example` menjadi `.env.local`, lalu isi:
 
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@HOST.neon.tech/DBNAME?sslmode=require"
+DATABASE_URL_UNPOOLED="postgresql://USER:PASSWORD@HOST.neon.tech/DBNAME?sslmode=require"
 NEXT_PUBLIC_API_URL="/api"
 ```
 
@@ -120,7 +121,7 @@ Aplikasi aktif di:
 
 ## Deploy ke Vercel
 
-Deploy folder `frontend` ke Vercel, lalu set environment variable `DATABASE_URL` dari Neon dan `NEXT_PUBLIC_API_URL=/api`. Jalankan `npm run db:push` dan `npm run db:seed` dari lokal atau Vercel build command terkontrol saat database masih kosong.
+Deploy dengan **Root Directory** Vercel diset ke `frontend`, lalu set environment variable `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, dan `NEXT_PUBLIC_API_URL=/api`. Jalankan `npm run db:push` dan `npm run db:seed` dari lokal saat database masih kosong.
 
 ## Endpoint API Utama
 
@@ -167,22 +168,20 @@ Deploy folder `frontend` ke Vercel, lalu set environment variable `DATABASE_URL`
 
 ```text
 ProjectApp/
-├── backend/
-│   ├── app/
-│   ├── database/
-│   ├── routes/
-│   └── .env
 ├── frontend/
+│   ├── app/
+│   ├── prisma/
 │   ├── src/
-│   └── public/
+│   ├── public/
+│   └── vercel.json
 ├── database-inventaris.sql
-├── CARA-RUN-APLIKASI.md
+├── MIGRASI-NEXT-PRISMA.md
 └── README.md
 ```
 
 ## Catatan
 
-- File `backend/.env` memang tidak di-push ke GitHub karena berisi konfigurasi lokal. Untuk setup di komputer lain, gunakan `backend/.env.example` lalu rename/copy menjadi `backend/.env`.
-- Frontend sekarang memakai base API dinamis dari host browser, jadi lebih aman saat dibuka dari `localhost` maupun IP jaringan lokal.
+- File `frontend/.env` dan `frontend/.env.local` tidak di-push ke GitHub karena berisi connection string database.
+- API sekarang berjalan di Next.js Route Handler pada path `/api`.
 - UI sudah dirapikan agar lebih nyaman di berbagai ukuran layar.
 - Jika tampilan browser belum berubah setelah update, lakukan hard refresh dengan `Ctrl + F5`.
