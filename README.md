@@ -1,12 +1,13 @@
 ﻿# Aplikasi Inventaris Gudang
 
-Aplikasi inventaris gudang berbasis Laravel dan React untuk mengelola produk, kategori, transaksi barang masuk/keluar, serta data pengguna dalam satu dashboard yang responsif.
+Aplikasi inventaris gudang berbasis Next.js, Prisma, dan PostgreSQL/Neon untuk mengelola produk, kategori, transaksi barang masuk/keluar, serta data pengguna dalam satu dashboard yang responsif.
 
 ## Ringkasan
 
-- Backend: Laravel 12 REST API
-- Frontend: React.js
-- Database: MySQL
+- App: Next.js
+- API: Next.js Route Handler
+- ORM: Prisma
+- Database: PostgreSQL, siap Neon
 - UI: responsive untuk desktop, tablet, dan mobile
 - Role utama: `Owner` dan `Admin`
 
@@ -70,71 +71,56 @@ Tabel bisnis utama:
 - `products`
 - `transactions`
 
-File database utama project:
+Skema database utama project:
+
+- [frontend/prisma/schema.prisma](</C:/Rahmat Folder/UNPAM/TUGAS/KP/ProjectApp/frontend/prisma/schema.prisma:1>)
+
+File seed:
+
+- [frontend/prisma/seed.js](</C:/Rahmat Folder/UNPAM/TUGAS/KP/ProjectApp/frontend/prisma/seed.js:1>)
+
+File SQL lama masih disimpan sebagai referensi migrasi:
 
 - [database-inventaris.sql](</C:/Rahmat Folder/UNPAM/TUGAS/KP/ProjectApp/database-inventaris.sql:1>)
 
-File tersebut sudah berisi:
-
-- pembuatan database `laravel_react_app`
-- struktur tabel inti dan tabel pendukung Laravel
-- seed data awal
-- akun login default
-
 ## Cara Menjalankan
 
-### 1. Jalankan MySQL
+### 1. Siapkan PostgreSQL/Neon
 
-Gunakan XAMPP atau MySQL lokal, lalu pastikan service MySQL aktif.
+Buat database PostgreSQL, misalnya di Neon. Ambil connection string pooled atau direct connection.
 
-### 2. Import database
+### 2. Buat env
 
-Import file `database-inventaris.sql` ke MySQL, misalnya lewat phpMyAdmin atau command line.
+Di folder `frontend`, salin `.env.example` menjadi `.env.local`, lalu isi:
 
-Nama database yang dipakai aplikasi:
-
-- `laravel_react_app`
-
-### 3. Jalankan backend
-
-```bash
-cd backend
-composer install
-php artisan serve --host=0.0.0.0 --port=8000
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST.neon.tech/DBNAME?sslmode=require"
+NEXT_PUBLIC_API_URL="/api"
 ```
 
-Backend aktif di:
-
-- `http://localhost:8000`
-
-### 4. Jalankan frontend
+### 3. Push schema dan seed data
 
 ```bash
 cd frontend
 npm install
-npm start
+npm run db:push
+npm run db:seed
 ```
 
-Frontend aktif di:
+### 4. Jalankan aplikasi
+
+```bash
+cd frontend
+npm run dev
+```
+
+Aplikasi aktif di:
 
 - `http://localhost:3000`
 
-## Konfigurasi Database Backend
+## Deploy ke Vercel
 
-File contoh konfigurasi:
-
-- `backend/.env.example`
-
-Salin menjadi `.env`, lalu gunakan konfigurasi berikut:
-
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=laravel_react_app
-DB_USERNAME=root
-DB_PASSWORD=
-```
+Deploy folder `frontend` ke Vercel, lalu set environment variable `DATABASE_URL` dari Neon dan `NEXT_PUBLIC_API_URL=/api`. Jalankan `npm run db:push` dan `npm run db:seed` dari lokal atau Vercel build command terkontrol saat database masih kosong.
 
 ## Endpoint API Utama
 
