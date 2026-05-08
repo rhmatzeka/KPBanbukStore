@@ -19,6 +19,7 @@ Project ini sudah dipindahkan dari Laravel API + MySQL menjadi Next.js API + Pri
 
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@HOST.neon.tech/DBNAME?sslmode=require"
+DATABASE_URL_UNPOOLED="postgresql://USER:PASSWORD@HOST.neon.tech/DBNAME?sslmode=require"
 NEXT_PUBLIC_API_URL="/api"
 ```
 
@@ -52,6 +53,7 @@ Set root directory Vercel ke `frontend`, lalu tambahkan environment variable:
 
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@HOST.neon.tech/DBNAME?sslmode=require"
+DATABASE_URL_UNPOOLED="postgresql://USER:PASSWORD@HOST.neon.tech/DBNAME?sslmode=require"
 NEXT_PUBLIC_API_URL="/api"
 ```
 
