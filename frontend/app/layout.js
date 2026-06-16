@@ -2,7 +2,7 @@ import '../src/index.css';
 import '../src/App.css';
 
 export const metadata = {
-  title: 'Inventaris Gudang',
+  title: 'Banbuk Store',
   description: 'Aplikasi inventaris gudang berbasis Next.js',
 };
 

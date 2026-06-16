@@ -137,6 +137,7 @@ function Products({ user }) {
               <th>Stok</th>
               <th>Min Stok</th>
               <th>Harga</th>
+              <th>Nilai Stok</th>
               <th>Satuan</th>
               <th>Aksi</th>
             </tr>
@@ -154,6 +155,7 @@ function Products({ user }) {
                 </td>
                 <td data-label="Min Stok">{product.min_stock}</td>
                 <td data-label="Harga">Rp {parseInt(product.price, 10).toLocaleString('id-ID')}</td>
+                <td data-label="Nilai Stok">Rp {(product.stock * parseInt(product.price, 10)).toLocaleString('id-ID')}</td>
                 <td data-label="Satuan">{product.unit}</td>
                 <td data-label="Aksi" className="action-cell">
                   <button type="button" className="btn btn-sm btn-secondary" onClick={() => openModal(product)}>

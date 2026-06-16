@@ -98,7 +98,7 @@ function Transactions() {
       <div className="table-container">
         <div className="table-header">
           <h2>Daftar Transaksi</h2>
-          <button type="button" className="btn btn-primary" onClick={openModal}>
+          <button type="button" className="btn btn-primary" onClick={() => openModal()}>
             + Tambah Transaksi
           </button>
         </div>
