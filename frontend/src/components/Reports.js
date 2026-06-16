@@ -108,17 +108,15 @@ function Reports() {
     ];
 
     const csv = rows.map((row) => row.map(toCsvValue).join(',')).join('\n');
-    const blob = new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+    const encodedUri = 'data:text/csv;charset=utf-8,\ufeff' + encodeURIComponent(csv);
     const link = document.createElement('a');
     const today = new Date().toISOString().split('T')[0];
 
-    link.href = url;
-    link.download = `laporan-transaksi-${today}.csv`;
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `laporan-transaksi-${today}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
   };
 
   if (loading) {

@@ -38,7 +38,7 @@ function Login({ onLogin }) {
       </video>
       <div className="login-overlay"></div>
       <div className="login-box">
-        <h1>Inventaris Gudang</h1>
+        <h1>Banbuk Store</h1>
         <p>Masuk ke akun Anda</p>
 
         {error && <div className="error-message">{error}</div>}

@@ -64,7 +64,7 @@ function App() {
           <span></span>
           <span></span>
         </button>
-        <h2>Inventaris Gudang</h2>
+        <h2>Banbuk Store</h2>
         <div></div>
       </div>
 
@@ -74,7 +74,7 @@ function App() {
       <div className="dashboard">
         <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
           <div className="sidebar-header">
-            <h2>Inventaris Gudang</h2>
+            <h2>Banbuk Store</h2>
             <p>{user.name} ({user.role?.display_name})</p>
           </div>
           <div className="sidebar-menu">

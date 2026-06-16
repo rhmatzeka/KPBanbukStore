@@ -44,14 +44,16 @@ async function main() {
     [1, 'Elektronik', 'Barang elektronik dan gadget'],
     [2, 'Furniture', 'Mebel dan perabotan'],
     [3, 'Alat Tulis', 'Perlengkapan kantor dan alat tulis'],
-    [4, 'Makanan', 'Produk makanan dan minuman'],
+    [4, 'Makanan/Minuman', 'Produk makanan dan minuman'],
     [5, 'Pakaian', 'Pakaian dan aksesoris'],
+    [6, 'Alat Bangunan', 'Peralatan dan perkakas bangunan'],
+    [7, 'Alat Makan dan Minum', 'Peralatan makan dan minum'],
   ];
 
   for (const [id, name, description] of categories) {
     await prisma.category.upsert({
       where: { id },
-      update: {},
+      update: { name, description },
       create: { id, name, description },
     });
   }
@@ -85,6 +87,23 @@ async function main() {
       update: {},
       create: { id, transaction_code, product_id, user_id, type, quantity, notes, transaction_date: now },
     });
+  }
+
+  // Reset auto-increment sequences in PostgreSQL to MAX(id)
+  const tables = ['roles', 'users', 'categories', 'products', 'transactions', 'stock_opnames', 'audit_logs'];
+  console.log('Resetting all auto-increment sequences...');
+  for (const table of tables) {
+    try {
+      await prisma.$executeRawUnsafe(`
+        SELECT setval(
+          pg_get_serial_sequence('"${table}"', 'id'),
+          COALESCE((SELECT MAX(id) FROM "${table}"), 1)
+        );
+      `);
+      console.log(`- Reset sequence for table: ${table}`);
+    } catch (e) {
+      console.error(`- Failed to reset sequence for ${table}:`, e.message);
+    }
   }
 }
 

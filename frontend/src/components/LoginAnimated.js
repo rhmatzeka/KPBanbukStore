@@ -126,7 +126,7 @@ function LoginAnimated({ onLogin }) {
   return (
     <div className="login-container">
       <div className="login-box" ref={loginBoxRef}>
-        <h1 ref={titleRef}>Inventaris Gudang</h1>
+        <h1 ref={titleRef}>Banbuk Store</h1>
         <p ref={subtitleRef}>Masuk ke akun Anda</p>
 
         {error && (
