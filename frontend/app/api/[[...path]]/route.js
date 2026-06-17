@@ -147,7 +147,7 @@ async function handleLogin(request, payload) {
     console.error('Login failed:', error);
     return json(
       {
-        message: 'Login gagal karena koneksi database bermasalah. Cek environment variable DATABASE_URL di Vercel.',
+        message: 'Login gagal. Silakan coba beberapa saat lagi atau hubungi administrator.',
       },
       500
     );
@@ -168,7 +168,7 @@ async function health() {
       {
         ok: false,
         database: 'error',
-        message: 'Database belum terkoneksi. Cek DATABASE_URL di Vercel dan redeploy.',
+        message: 'Koneksi database bermasalah.',
       },
       500
     );
