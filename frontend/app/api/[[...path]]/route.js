@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../src/lib/prisma';
+import { sendLowStockEmail } from '../../../src/lib/email';
 
 const includeProduct = { category: true };
 const includeTransaction = { product: true, user: { include: { role: true } } };
@@ -395,7 +396,8 @@ export async function POST(request, context) {
       const previousStock = product.stock;
       const nextStock = type === 'in' ? previousStock + quantity : previousStock - quantity;
       if (nextStock < 0) return { insufficient: true };
-      await tx.product.update({ where: { id: productId }, data: { stock: nextStock } });
+      
+      const updatedProduct = await tx.product.update({ where: { id: productId }, data: { stock: nextStock } });
       const transaction = await tx.transaction.create({
         data: {
           transaction_code: randomCode('TRX'),
@@ -418,10 +420,23 @@ export async function POST(request, context) {
           new_values: { transaction_code: transaction.transaction_code, product_id: productId, type, quantity, stock: nextStock },
         },
       });
-      return transaction;
+      return { transaction, updatedProduct };
     });
     if (result.insufficient) return json({ message: 'Insufficient stock' }, 400);
-    return json(result, 201);
+
+    // Kirim notifikasi email jika stok baru di bawah atau sama dengan min_stock
+    if (result.updatedProduct.stock <= result.updatedProduct.min_stock) {
+      // Jalankan asinkron tanpa menahan response request
+      sendLowStockEmail({
+        productName: result.updatedProduct.name,
+        productCode: result.updatedProduct.code,
+        currentStock: result.updatedProduct.stock,
+        minStock: result.updatedProduct.min_stock,
+        unit: result.updatedProduct.unit,
+      }).catch((err) => console.error('Email error:', err));
+    }
+
+    return json(result.transaction, 201);
   }
 
   if (resource === 'stock-opnames') {
@@ -445,7 +460,7 @@ export async function POST(request, context) {
         },
         include: includeOpname,
       });
-      await tx.product.update({ where: { id: productId }, data: { stock: physicalStock } });
+      const updatedProduct = await tx.product.update({ where: { id: productId }, data: { stock: physicalStock } });
       await tx.auditLog.create({
         data: {
           user_id: access.user.id,
@@ -456,9 +471,21 @@ export async function POST(request, context) {
           new_values: { opname_code: created.opname_code, product_id: productId, physical_stock: physicalStock, difference: created.difference, reason: created.reason },
         },
       });
-      return created;
+      return { created, updatedProduct };
     });
-    return json(opname, 201);
+
+    // Kirim notifikasi email jika stok hasil opname di bawah atau sama dengan min_stock
+    if (opname.updatedProduct.stock <= opname.updatedProduct.min_stock) {
+      sendLowStockEmail({
+        productName: opname.updatedProduct.name,
+        productCode: opname.updatedProduct.code,
+        currentStock: opname.updatedProduct.stock,
+        minStock: opname.updatedProduct.min_stock,
+        unit: opname.updatedProduct.unit,
+      }).catch((err) => console.error('Email error:', err));
+    }
+
+    return json(opname.created, 201);
   }
 
   return json({ message: `Endpoint /api/${path.join('/')} tidak ditemukan` }, 404);
@@ -508,19 +535,20 @@ export async function PUT(request, context) {
       const oldImpact = transaction.type === 'in' ? transaction.quantity : -transaction.quantity;
       const newImpact = payload.type === 'in' ? Number(payload.quantity) : -Number(payload.quantity);
 
+      let updatedProduct = null;
       if (oldProduct.id === newProduct.id) {
         const nextStock = oldProduct.stock - oldImpact + newImpact;
         if (nextStock < 0) return { insufficient: true };
-        await tx.product.update({ where: { id: oldProduct.id }, data: { stock: nextStock } });
+        updatedProduct = await tx.product.update({ where: { id: oldProduct.id }, data: { stock: nextStock } });
       } else {
         const restoredOldStock = oldProduct.stock - oldImpact;
         const nextNewStock = newProduct.stock + newImpact;
         if (restoredOldStock < 0 || nextNewStock < 0) return { insufficient: true };
         await tx.product.update({ where: { id: oldProduct.id }, data: { stock: restoredOldStock } });
-        await tx.product.update({ where: { id: newProduct.id }, data: { stock: nextNewStock } });
+        updatedProduct = await tx.product.update({ where: { id: newProduct.id }, data: { stock: nextNewStock } });
       }
 
-      return tx.transaction.update({
+      const updatedTrx = await tx.transaction.update({
         where: { id: Number(id) },
         data: {
           product_id: Number(payload.product_id),
@@ -531,10 +559,24 @@ export async function PUT(request, context) {
         },
         include: includeTransaction,
       });
+
+      return { updatedTrx, updatedProduct };
     });
     if (result.insufficient) return json({ message: 'Stok tidak cukup untuk perubahan transaksi ini' }, 400);
-    await audit(request, 'update', 'transactions', `Mengubah transaksi ${result.transaction_code}`, null, result, access.user);
-    return json(result);
+    
+    // Kirim notifikasi email jika stok baru hasil update di bawah atau sama dengan min_stock
+    if (result.updatedProduct && result.updatedProduct.stock <= result.updatedProduct.min_stock) {
+      sendLowStockEmail({
+        productName: result.updatedProduct.name,
+        productCode: result.updatedProduct.code,
+        currentStock: result.updatedProduct.stock,
+        minStock: result.updatedProduct.min_stock,
+        unit: result.updatedProduct.unit,
+      }).catch((err) => console.error('Email error:', err));
+    }
+
+    await audit(request, 'update', 'transactions', `Mengubah transaksi ${result.updatedTrx.transaction_code}`, null, result.updatedTrx, access.user);
+    return json(result.updatedTrx);
   }
 
   return json({ message: `Endpoint /api/${path.join('/')} tidak ditemukan` }, 404);
