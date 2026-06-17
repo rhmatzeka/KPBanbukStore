@@ -1,18 +1,17 @@
 import { Resend } from 'resend';
 
-const resendApiKey = process.env.RESEND_API_KEY;
-const emailFrom = process.env.EMAIL_FROM || 'onboarding@resend.dev';
-const emailToOwner = process.env.EMAIL_TO_OWNER || 'owner@gudang.com';
-
-const resend = resendApiKey ? new Resend(resendApiKey) : null;
-
 export async function sendLowStockEmail({ productName, productCode, currentStock, minStock, unit }) {
-  if (!resend) {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  const emailFrom = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+  const emailToOwner = process.env.EMAIL_TO_OWNER || 'owner@gudang.com';
+
+  if (!resendApiKey) {
     console.warn('Resend API key is not configured. Email notification skipped.');
     return;
   }
 
   try {
+    const resend = new Resend(resendApiKey);
     const data = await resend.emails.send({
       from: emailFrom,
       to: emailToOwner,
